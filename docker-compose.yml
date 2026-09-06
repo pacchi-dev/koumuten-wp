@@ -1,0 +1,95 @@
+# 架空工務店サイト ローカル開発環境
+#
+# 構成:
+#   db        MySQL 8.0
+#   wordpress WordPress + PHP 8.3 + Apache  → http://localhost:8090
+#   wpcli     WP-CLI（常駐させ docker exec で使う）
+#   mailpit   SMTP を受け止めてブラウザで確認 → http://localhost:8035
+#
+# WordPress 本体は名前付きボリューム wp_core に置き、
+# 自作テーマ・自作プラグインだけをバインドマウントする。
+# 「本体は更新で置換される / ユーザー領域は wp-content のみ」という
+# WordPress の構造をそのまま開発環境に反映している。
+#
+# ポートは 8090 / 8035 を使う。既存の portfolio_wordpress が
+# 8080 / 8025 を使っており、同時起動できるようにするため。
+
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: koumuten_wp_db
+    # WordPress は utf8mb4 を前提とするため明示する
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    container_name: koumuten_wp
+    depends_on:
+      - db
+    ports:
+      - "${WP_PORT:-8090}:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+      # エラーは画面に出さずログファイルへ出す。
+      # 画面表示のままだと HTML が壊れ、本番同様の見え方を確認できない。
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wp_core:/var/www/html
+      - ./themes/soranowa-koumuten:/var/www/html/wp-content/themes/soranowa-koumuten
+      - ./plugins/koumuten-core:/var/www/html/wp-content/plugins/koumuten-core
+      - ./uploads:/var/www/html/wp-content/uploads
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins
+    restart: unless-stopped
+
+  wpcli:
+    image: wordpress:cli
+    container_name: koumuten_wp_cli
+    depends_on:
+      - db
+      - wordpress
+    # WP-CLI は www-data(33) で動かす。root で実行するとファイル所有者がずれる。
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - wp_core:/var/www/html
+      - ./themes/soranowa-koumuten:/var/www/html/wp-content/themes/soranowa-koumuten
+      - ./plugins/koumuten-core:/var/www/html/wp-content/plugins/koumuten-core
+      - ./uploads:/var/www/html/wp-content/uploads
+      - ./mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./bin:/scripts
+    # コマンド実行のたびに起動すると遅いため常駐させ、exec で使う
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: koumuten_wp_mail
+    ports:
+      - "${MAILPIT_PORT:-8035}:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    restart: unless-stopped
+
+volumes:
+  wp_core:
+  db_data:
