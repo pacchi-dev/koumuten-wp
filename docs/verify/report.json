@@ -1,6 +1,6 @@
 {
   "base": "http://localhost:8090",
-  "checkedAt": "2026-09-06T08:41:21.216Z",
+  "checkedAt": "2026-09-06T10:21:56.525Z",
   "pages": [
     {
       "label": "トップ",
@@ -214,8 +214,8 @@
         "transfer": 14608
       }
     },
-    "domContentLoaded": 741,
-    "load": 741
+    "domContentLoaded": 754,
+    "load": 792
   },
   "form": {
     "state": {
