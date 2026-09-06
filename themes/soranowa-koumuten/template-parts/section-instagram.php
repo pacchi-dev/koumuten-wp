@@ -59,7 +59,6 @@ if ( empty( $sk_images ) ) {
 						'sk-thumb',
 						array(
 							'sizes' => '(min-width: 900px) 180px, 33vw',
-							'alt'   => '',
 						)
 					);
 					?>

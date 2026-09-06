@@ -55,7 +55,6 @@ if ( empty( $sk_services ) ) {
 								'sk-card',
 								array(
 									'sizes' => '(min-width: 1180px) 366px, (min-width: 900px) 33vw, (min-width: 600px) 50vw, 100vw',
-									'alt'   => (string) ( $sk_service['title'] ?? '' ),
 								)
 							);
 							?>

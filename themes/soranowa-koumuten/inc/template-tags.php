@@ -37,6 +37,12 @@ function sk_image( int $attachment_id, string $size, array $args = array() ): vo
 		$attr['sizes'] = $args['sizes'];
 	}
 
+	/*
+	 * alt は原則としてテンプレートで指定しない。
+	 * 指定しなければ wp_get_attachment_image() がメディアライブラリの
+	 * 代替テキストを使うため、運営者が管理画面から編集できる。
+	 * テンプレートに書くとコードを触らないと直せなくなる。
+	 */
 	if ( isset( $args['alt'] ) ) {
 		$attr['alt'] = $args['alt'];
 	}
@@ -79,8 +85,18 @@ function sk_post_image( int $post_id, string $size, array $args = array() ): voi
 		return;
 	}
 
+	/*
+	 * 代替テキストはメディアライブラリの値を優先する。
+	 * そちらが空のときだけ投稿タイトルで補う。
+	 * 何も入らないより投稿タイトルのほうがましだが、
+	 * 画像そのものの説明にはならないため、あくまで保険とする。
+	 */
 	if ( ! isset( $args['alt'] ) ) {
-		$args['alt'] = get_the_title( $post_id );
+		$media_alt = (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+
+		if ( '' === trim( $media_alt ) ) {
+			$args['alt'] = get_the_title( $post_id );
+		}
 	}
 
 	sk_image( $attachment_id, $size, $args );

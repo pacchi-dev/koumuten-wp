@@ -31,7 +31,6 @@ $sk_text     = function_exists( 'get_field' ) ? (string) get_field( 'hero_text',
 			array(
 				'sizes' => '100vw',
 				'eager' => true,
-				'alt'   => '',
 			)
 		);
 		?>
