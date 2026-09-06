@@ -41,7 +41,7 @@ $sk_posts_page_id = (int) get_option( 'page_for_posts' );
 			</div>
 			<?php if ( $sk_posts_page_id > 0 ) : ?>
 				<p class="c-heading__lead">
-					<a href="<?php echo esc_url( (string) get_permalink( $sk_posts_page_id ) ); ?>">
+					<a class="c-textlink" href="<?php echo esc_url( (string) get_permalink( $sk_posts_page_id ) ); ?>">
 						<?php esc_html_e( 'お知らせ一覧へ', 'soranowa-koumuten' ); ?>
 					</a>
 				</p>
