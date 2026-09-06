@@ -130,6 +130,8 @@ $sk_contact_form = <<<'FORM'
 <label>ご相談内容<span class="p-form__required">必須</span>
 [textarea* your-message]</label>
 
+<p class="p-form__consent-note"><a href="/privacy/">プライバシーポリシー</a>をご確認のうえ、同意して送信してください。</p>
+
 [acceptance your-consent] プライバシーポリシーに同意します [/acceptance]
 
 [submit "送信する"]
@@ -192,6 +194,8 @@ $sk_recruit_form = <<<'FORM'
 
 <label>志望動機・自己PR<span class="p-form__required">必須</span>
 [textarea* your-message]</label>
+
+<p class="p-form__consent-note"><a href="/privacy/">プライバシーポリシー</a>をご確認のうえ、同意して送信してください。</p>
 
 [acceptance your-consent] プライバシーポリシーに同意します [/acceptance]
 

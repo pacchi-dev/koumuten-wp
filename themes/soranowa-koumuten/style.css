@@ -1527,3 +1527,77 @@ button {
 .c-card__date {
 	letter-spacing: 0.02em;
 }
+
+/* --- 単独で置かれるテキストリンクのタップ領域 ---------------------------- */
+/*
+ * 本文中のリンクと違い、単独で置かれるリンクは指で狙って押される。
+ * 文字の高さのままだと 14〜17px しかなく、WCAG 2.5.8（AA）の 24×24px を
+ * 下回るため、本サイトの基準である 44px の高さを確保する。
+ * 幅は文字幅で 24px を超えるので、高さだけ指定すれば足りる。
+ */
+.c-textlink,
+.l-footer__tel,
+.l-footer__sns a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+}
+
+/*
+ * パンくずのリンク。
+ *
+ * 文中に並ぶ小さなリンクのため、主要な操作要素と同じ 44px にすると
+ * パンくず帯だけで 68px を占めてしまい、モバイルで本文が押し下げられる。
+ * ここは WCAG 2.5.8（AA）の下限である 24×24px を満たす高さにとどめる。
+ */
+.c-breadcrumb__list a,
+.c-breadcrumb__list span {
+	display: inline-flex;
+	align-items: center;
+	min-height: 24px;
+}
+
+/* --- チェックボックス・ラジオのタップ領域 -------------------------------- */
+/*
+ * ブラウザ既定のチェックボックスは 13×13px しかない。
+ * 同意チェックはこれを入れないと送信できない必須操作なので、
+ * ラベル全体を 44px の高さの操作対象にし、四角自体も 24px に拡大する。
+ */
+.p-form .wpcf7-list-item {
+	margin: 0;
+}
+
+.p-form .wpcf7-list-item label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6em;
+	min-height: 44px;
+	margin-bottom: 0;
+	font-weight: 400;
+}
+
+.p-form input[type="checkbox"],
+.p-form input[type="radio"] {
+	flex: none;
+	width: 24px;
+	height: 24px;
+	margin: 0;
+	accent-color: var(--c-brand);
+}
+
+.p-form__consent-note {
+	margin-top: var(--sp-5);
+	font-size: var(--fs-sm);
+	color: var(--c-muted);
+}
+
+.p-form__consent-note a {
+	/*
+	 * 文中のリンクなので WCAG 2.5.8 のインライン例外に当たるが、
+	 * 送信前に必ず読ませたいリンクなので、上下の padding で
+	 * 24px の高さを確保しておく。
+	 */
+	display: inline-block;
+	padding-block: 5px;
+	color: var(--c-brand);
+}
