@@ -24,6 +24,7 @@ require_once KC_PATH . 'inc/post-types.php';
 require_once KC_PATH . 'inc/fields-work.php';
 require_once KC_PATH . 'inc/fields-front-page.php';
 require_once KC_PATH . 'inc/fields-pages.php';
+require_once KC_PATH . 'inc/company-settings.php';
 
 /**
  * 有効化時の処理。
