@@ -1,0 +1,235 @@
+{
+  "base": "http://localhost:8090",
+  "checkedAt": "2026-09-06T08:41:21.216Z",
+  "pages": [
+    {
+      "label": "トップ",
+      "url": "/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "事業内容",
+      "url": "/services/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "施工実績 一覧",
+      "url": "/works/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "施工実績 絞り込み",
+      "url": "/work-category/renovation/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "施工実績 詳細",
+      "url": "/works/himeji-yoyu-house/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "会社概要",
+      "url": "/company/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "採用情報",
+      "url": "/recruit/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "お知らせ 一覧",
+      "url": "/news/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "お知らせ 詳細",
+      "url": "/news/summer-holiday-2025/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "お問い合わせ",
+      "url": "/contact/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "プライバシーポリシー",
+      "url": "/privacy/",
+      "status": 200,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    },
+    {
+      "label": "404",
+      "url": "/no-such-page-here/",
+      "status": 404,
+      "overflow": {
+        "390": 0,
+        "768": 0,
+        "1440": 0
+      }
+    }
+  ],
+  "overflow": [],
+  "contrast": [
+    {
+      "name": "ヒーロー（390px）",
+      "samples": 40,
+      "worstPixel": [
+        62,
+        64,
+        66
+      ],
+      "worstLuminance": 0.0508,
+      "contrast": 10.41,
+      "pass": true
+    },
+    {
+      "name": "採用バナー（390px）",
+      "samples": 40,
+      "worstPixel": [
+        79,
+        79,
+        79
+      ],
+      "worstLuminance": 0.0782,
+      "contrast": 8.19,
+      "pass": true
+    },
+    {
+      "name": "ヒーロー（1440px）",
+      "samples": 40,
+      "worstPixel": [
+        76,
+        77,
+        77
+      ],
+      "worstLuminance": 0.0738,
+      "contrast": 8.48,
+      "pass": true
+    },
+    {
+      "name": "採用バナー（1440px）",
+      "samples": 40,
+      "worstPixel": [
+        84,
+        78,
+        68
+      ],
+      "worstLuminance": 0.0775,
+      "contrast": 8.23,
+      "pass": true
+    }
+  ],
+  "images": {
+    "total": 17,
+    "withSrcset": 17,
+    "withSizes": 17,
+    "lazy": 16,
+    "eager": 1,
+    "noLoading": 0,
+    "highPriority": 1,
+    "chosen": [
+      {
+        "current": "hero-main-1920x1080.jpg",
+        "displayed": "1440x680"
+      },
+      {
+        "current": "service-newbuild-400x300.jpg",
+        "displayed": "351x263"
+      },
+      {
+        "current": "service-reform-400x300.jpg",
+        "displayed": "351x263"
+      }
+    ]
+  },
+  "performance": {
+    "requests": 18,
+    "transferBytes": 590279,
+    "byType": {
+      "link": {
+        "count": 2,
+        "transfer": 9042
+      },
+      "img": {
+        "count": 10,
+        "transfer": 558276
+      },
+      "script": {
+        "count": 5,
+        "transfer": 14608
+      }
+    },
+    "domContentLoaded": 741,
+    "load": 741
+  },
+  "form": {
+    "state": {
+      "classes": "wpcf7-form resetting",
+      "message": "ありがとうございます。送信が完了しました。"
+    },
+    "received": [
+      {
+        "subject": "ソラノワ工務店｜姫路の注文住宅・リノベーション お問い合わせ（新築・注文住宅）",
+        "to": [
+          "admin@example.test"
+        ]
+      }
+    ],
+    "pass": true
+  }
+}
