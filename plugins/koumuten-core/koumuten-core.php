@@ -21,6 +21,9 @@ define( 'KC_VERSION', '1.0.0' );
 define( 'KC_PATH', plugin_dir_path( __FILE__ ) );
 
 require_once KC_PATH . 'inc/post-types.php';
+require_once KC_PATH . 'inc/fields-work.php';
+require_once KC_PATH . 'inc/fields-front-page.php';
+require_once KC_PATH . 'inc/fields-pages.php';
 
 /**
  * 有効化時の処理。
