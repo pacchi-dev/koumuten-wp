@@ -18,3 +18,4 @@ require_once SK_DIR . '/inc/setup.php';
 require_once SK_DIR . '/inc/enqueue.php';
 require_once SK_DIR . '/inc/template-tags.php';
 require_once SK_DIR . '/inc/floor-plan.php';
+require_once SK_DIR . '/inc/seo.php';
