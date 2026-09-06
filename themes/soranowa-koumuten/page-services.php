@@ -52,7 +52,6 @@ while ( have_posts() ) :
 							'sk-card-lg',
 							array(
 								'sizes' => '(min-width: 900px) 50vw, 100vw',
-								'alt'   => (string) $sk_service['title'],
 							)
 						);
 						?>

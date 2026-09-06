@@ -29,7 +29,6 @@ if ( '' === $sk_heading ) {
 				'sk-hero-md',
 				array(
 					'sizes' => '100vw',
-					'alt'   => '',
 				)
 			);
 			?>

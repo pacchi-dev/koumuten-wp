@@ -41,7 +41,6 @@ while ( have_posts() ) :
 						'sk-detail',
 						array(
 							'sizes' => '(min-width: 1180px) 1116px, 100vw',
-							'alt'   => '',
 						)
 					);
 					?>
