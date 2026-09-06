@@ -1,0 +1,15 @@
+# WordPress 本体・DB・アップロード実体は管理しない。
+# 管理するのは自作テーマ / 自作プラグイン / 環境定義 / ドキュメントのみ。
+
+.env
+uploads/*
+!uploads/.gitkeep
+
+# 素材の実体は再配布しない。出典は README に記載し、
+# bin/seed/images/ は取得スクリプトで再現する。
+bin/seed/images/*
+!bin/seed/images/.gitkeep
+
+.DS_Store
+node_modules/
+*.log
