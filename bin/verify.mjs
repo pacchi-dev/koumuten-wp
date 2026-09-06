@@ -10,6 +10,8 @@
  *   4. 画像に srcset と loading が付いている（ヒーローだけ eager）
  *   5. リクエスト数・転送量・読み込み時間
  *   6. Contact Form 7 の送信が Mailpit に届く
+ *   7. タップ領域が 24×24px 以上（WCAG 2.5.8 AA）
+ *   8. すべての img に代替テキストがある
  *
  * 実ブラウザ（Chrome）で描画した結果を測る。
  * CSS を読んだだけでは「実際にどう見えるか」は分からないため。
@@ -229,20 +231,92 @@ async function main() {
 			}));
 
 			row.overflow[vp.label] = m.scrollWidth - m.clientWidth;
+
+			/*
+			 * タップ領域と代替テキストはモバイル幅でだけ調べる。
+			 * 指で操作されるのはこの幅であり、レイアウトも最も詰まるため。
+			 */
+			if ('390' === vp.label) {
+				const a11y = await page.evaluate(() => {
+					const small = [];
+
+					for (const el of document.querySelectorAll('a, button, input, select, textarea')) {
+						const box = el.getBoundingClientRect();
+
+						// 非表示の要素は対象外。
+						if ((0 === box.width && 0 === box.height) || 'hidden' === el.type) {
+							continue;
+						}
+
+						/*
+						 * チェックボックスのように、ラベル全体が操作対象に
+						 * なっている場合はラベルの大きさで判定する。
+						 */
+						const target = el.closest('label') || el;
+						const outer = target.getBoundingClientRect();
+						const width = Math.max(box.width, outer.width);
+						const height = Math.max(box.height, outer.height);
+
+						if (width < 24 || height < 24) {
+							small.push({
+								text: (el.textContent || el.name || '').trim().slice(0, 20),
+								size: `${Math.round(box.width)}x${Math.round(box.height)}`,
+							});
+						}
+					}
+
+					const images = Array.from(document.images);
+
+					return {
+						smallTargets: small,
+						imagesTotal: images.length,
+						imagesWithoutAlt: images
+							.filter((i) => !i.getAttribute('alt'))
+							.map((i) => i.currentSrc.split('/').pop()),
+					};
+				});
+
+				row.smallTargets = a11y.smallTargets;
+				row.imagesTotal = a11y.imagesTotal;
+				row.imagesWithoutAlt = a11y.imagesWithoutAlt;
+			}
 		}
 
 		const bad = Object.entries(row.overflow).filter(([, v]) => v > 0);
 		const expected = url === '/no-such-page-here/' ? 404 : 200;
-		const ok = row.status === expected && bad.length === 0;
+		const ok =
+			row.status === expected &&
+			bad.length === 0 &&
+			0 === (row.smallTargets || []).length &&
+			0 === (row.imagesWithoutAlt || []).length;
 
 		console.log(
 			`  ${ok ? 'OK ' : 'NG '} ${label.padEnd(20, '　')} ${row.status}  ` +
-				VIEWPORTS.map((v) => `${v.label}px:${row.overflow[v.label]}`).join('  ')
+				VIEWPORTS.map((v) => `${v.label}px:${row.overflow[v.label]}`).join('  ') +
+				`  タップ領域NG:${(row.smallTargets || []).length}` +
+				`  alt空:${(row.imagesWithoutAlt || []).length}/${row.imagesTotal || 0}`
 		);
+
+		for (const t of row.smallTargets || []) {
+			console.log(`        24px未満: ${t.size} "${t.text}"`);
+		}
+
+		for (const src of row.imagesWithoutAlt || []) {
+			console.log(`        alt が空: ${src}`);
+		}
 
 		report.pages.push(row);
 		if (bad.length) report.overflow.push(row);
 	}
+
+	const totalSmall = report.pages.reduce((n, p) => n + (p.smallTargets || []).length, 0);
+	const totalNoAlt = report.pages.reduce((n, p) => n + (p.imagesWithoutAlt || []).length, 0);
+	const totalImages = report.pages.reduce((n, p) => n + (p.imagesTotal || 0), 0);
+
+	console.log(
+		`\n  合計: 24px 未満のタップ領域 ${totalSmall} 件 / ` +
+			`alt が空の画像 ${totalNoAlt} 件（全 ${totalImages} 枚）`
+	);
 
 	// ---------------------------------------------------------------- 3
 	console.log('\n== 写真上の白文字のコントラスト（合成後の画素を実測）==');
@@ -431,7 +505,9 @@ async function main() {
 		report.overflow.length > 0 ||
 		report.contrast.some((c) => !c.pass) ||
 		(report.form && !report.form.pass) ||
-		report.pages.some((p) => p.status !== (p.url === '/no-such-page-here/' ? 404 : 200));
+		report.pages.some((p) => p.status !== (p.url === '/no-such-page-here/' ? 404 : 200)) ||
+		report.pages.some((p) => (p.smallTargets || []).length > 0) ||
+		report.pages.some((p) => (p.imagesWithoutAlt || []).length > 0);
 
 	process.exit(failed ? 1 : 0);
 }
