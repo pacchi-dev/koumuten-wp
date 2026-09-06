@@ -33,6 +33,11 @@ wp() {
 echo "==> 写真素材を用意します"
 ./bin/fetch-images.sh
 
+# バインドマウント先を先に作る。
+# 無い状態で docker compose up すると Docker が root 所有で作成し、
+# WordPress（www-data）がメディアをアップロードできなくなる。
+mkdir -p uploads
+
 echo "==> コンテナを起動します"
 docker compose up -d
 
