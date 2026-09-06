@@ -1,0 +1,1529 @@
+/*
+Theme Name: Soranowa Koumuten
+Theme URI: https://example.test/
+Author: pacchi
+Description: 架空の工務店「株式会社ソラノワ工務店」のコーポレートサイト用オリジナルテーマ。写真を主役にした明るい配色。データ構造はプラグイン koumuten-core が持ち、本テーマは表示のみを担当する。
+Version: 1.0.0
+Requires at least: 6.0
+Requires PHP: 8.1
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: soranowa-koumuten
+Tags: business, custom-post-type, responsive
+*/
+
+/* ==========================================================================
+   1. デザイントークン
+   配色・タイポグラフィ・余白をカスタムプロパティに集約する。
+   色や文字サイズを直接書かないことで、後からの調整が 1 箇所で済む。
+   ========================================================================== */
+
+:root {
+	/* 配色。明るい配色にする（既存ポートフォリオのダークテーマとは対極） */
+	--c-bg:          #ffffff;
+	--c-surface:     #f6f4f0;   /* 温かみのあるオフホワイト */
+	--c-surface-2:   #eeeae3;
+	--c-border:      #e2ddd4;
+	--c-text:        #1f2421;   /* 対 白 15.5:1 */
+	--c-muted:       #5c625e;   /* 対 白 6.6:1 */
+	--c-brand:       #1f4c3f;   /* 深緑。対 白 9.7:1 */
+	--c-brand-dark:  #16382e;
+	--c-brand-tint:  #eef2f0;
+	--c-accent:      #b8763e;   /* 木のトーン */
+	--c-on-dark:     #ffffff;
+
+	/* タイポグラフィ。
+	   Web フォントは読み込まない。日本語 Web フォントはサブセットでも
+	   数百 KB あり、「写真が主役 = 帯域は写真に使う」という方針と衝突するため。 */
+	--font-base: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP",
+	             "Yu Gothic Medium", "Yu Gothic", YuGothic, Meiryo, system-ui, sans-serif;
+
+	--fs-xs:   0.8125rem;
+	--fs-sm:   0.875rem;
+	--fs-base: 1rem;
+	--fs-md:   1.0625rem;
+	--fs-lg:   1.375rem;
+	--fs-xl:   clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+	--fs-2xl:  clamp(1.75rem, 1.3rem + 2vw, 2.5rem);
+	--fs-3xl:  clamp(2.125rem, 1.4rem + 3.2vw, 3.25rem);
+
+	--lh-tight: 1.35;
+	--lh-base:  1.9;
+
+	/* 余白 */
+	--sp-1: 0.25rem;
+	--sp-2: 0.5rem;
+	--sp-3: 0.75rem;
+	--sp-4: 1rem;
+	--sp-5: 1.5rem;
+	--sp-6: 2rem;
+	--sp-7: 2.5rem;
+	--sp-8: 3rem;
+	--sp-9: 4rem;
+	--sp-10: 5.5rem;
+
+	--container: 1180px;
+	--gutter: 1.25rem;
+	--radius: 4px;
+	--header-h: 68px;
+
+	--shadow-card: 0 1px 2px rgba(31, 36, 33, 0.05), 0 8px 24px rgba(31, 36, 33, 0.06);
+}
+
+/* ==========================================================================
+   2. ベース
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	/* 横スクロールの原因を作らない。390px で崩れないための土台。 */
+	overflow-x: hidden;
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	background: var(--c-bg);
+	color: var(--c-text);
+	font-family: var(--font-base);
+	font-size: var(--fs-base);
+	line-height: var(--lh-base);
+	/* iOS で文字が細く見えるのを抑える */
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+iframe {
+	max-width: 100%;
+	height: auto;
+	vertical-align: middle;
+}
+
+img {
+	/* WordPress が出力する width / height 属性で比率を保ちつつ可変にする */
+	height: auto;
+}
+
+a {
+	color: inherit;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.25em;
+}
+
+a:hover {
+	color: var(--c-brand);
+}
+
+h1, h2, h3, h4 {
+	margin: 0;
+	line-height: var(--lh-tight);
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+p, ul, ol, dl, figure, table {
+	margin: 0;
+}
+
+ul, ol {
+	padding: 0;
+	list-style: none;
+}
+
+button {
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+:focus-visible {
+	outline: 3px solid var(--c-accent);
+	outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html { scroll-behavior: auto; }
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ==========================================================================
+   3. レイアウト
+   ========================================================================== */
+
+.l-container {
+	width: 100%;
+	max-width: var(--container);
+	margin-inline: auto;
+	padding-inline: var(--gutter);
+}
+
+.l-main {
+	display: block;
+}
+
+.l-section {
+	padding-block: var(--sp-9);
+}
+
+.l-section--surface {
+	background: var(--c-surface);
+}
+
+.l-section--tight {
+	padding-block: var(--sp-8);
+}
+
+/* --- ヘッダー ------------------------------------------------------------ */
+
+.l-header {
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	background: rgba(255, 255, 255, 0.94);
+	backdrop-filter: saturate(1.4) blur(8px);
+	border-bottom: 1px solid var(--c-border);
+}
+
+.l-header__inner {
+	max-width: var(--container);
+	margin-inline: auto;
+	padding-inline: var(--gutter);
+	min-height: var(--header-h);
+	display: flex;
+	align-items: center;
+	gap: var(--sp-4);
+}
+
+.l-header__brand {
+	margin-right: auto;
+	line-height: 1.25;
+}
+
+.l-header__brand-link {
+	display: block;
+	padding-block: var(--sp-2);
+	text-decoration: none;
+}
+
+.l-header__brand-name {
+	display: block;
+	font-size: var(--fs-md);
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	color: var(--c-brand);
+}
+
+.l-header__brand-sub {
+	display: block;
+	font-size: 0.625rem;
+	letter-spacing: 0.22em;
+	color: var(--c-muted);
+}
+
+/* ハンバーガー。タップ領域は 44x44px 以上を確保する。 */
+.l-header__toggle {
+	display: none;
+	position: relative;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+
+.l-header__toggle-bar,
+.l-header__toggle-bar::before,
+.l-header__toggle-bar::after {
+	position: absolute;
+	left: 11px;
+	width: 22px;
+	height: 1.5px;
+	background: var(--c-text);
+	transition: transform 0.2s ease, opacity 0.2s ease;
+	content: "";
+}
+
+.l-header__toggle-bar {
+	top: 21px;
+}
+
+.l-header__toggle-bar::before { top: -7px; left: 0; }
+.l-header__toggle-bar::after  { top:  7px; left: 0; }
+
+.l-header__toggle[aria-expanded="true"] .l-header__toggle-bar {
+	background: transparent;
+}
+
+.l-header__toggle[aria-expanded="true"] .l-header__toggle-bar::before {
+	transform: translateY(7px) rotate(45deg);
+}
+
+.l-header__toggle[aria-expanded="true"] .l-header__toggle-bar::after {
+	transform: translateY(-7px) rotate(-45deg);
+}
+
+.l-nav {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-5);
+}
+
+.l-nav__list {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-5);
+}
+
+.l-nav__list a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	font-size: var(--fs-sm);
+	letter-spacing: 0.04em;
+	text-decoration: none;
+}
+
+.l-nav__list .current-menu-item > a,
+.l-nav__list .current_page_item > a {
+	color: var(--c-brand);
+	font-weight: 700;
+}
+
+.l-nav__cta {
+	margin: 0;
+}
+
+/* --- フッター ------------------------------------------------------------ */
+
+.l-footer {
+	margin-top: var(--sp-10);
+	padding-block: var(--sp-8) var(--sp-6);
+	background: var(--c-brand-dark);
+	color: var(--c-on-dark);
+	font-size: var(--fs-sm);
+}
+
+.l-footer a {
+	color: var(--c-on-dark);
+}
+
+.l-footer a:hover {
+	color: #cfe0d8;
+}
+
+.l-footer__grid {
+	display: grid;
+	gap: var(--sp-7);
+	grid-template-columns: 1fr;
+}
+
+.l-footer__name {
+	font-size: var(--fs-md);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	margin-bottom: var(--sp-3);
+}
+
+.l-footer__address {
+	font-style: normal;
+	color: #d5ded9;
+	margin-bottom: var(--sp-4);
+}
+
+.l-footer__zip {
+	margin-right: 0.25em;
+}
+
+.l-footer__meta {
+	display: grid;
+	grid-template-columns: 5.5em 1fr;
+	gap: var(--sp-1) var(--sp-3);
+	color: #d5ded9;
+}
+
+.l-footer__meta dt {
+	font-size: var(--fs-xs);
+	letter-spacing: 0.08em;
+	opacity: 0.8;
+}
+
+.l-footer__meta dd {
+	margin: 0;
+}
+
+.l-footer__tel {
+	font-size: var(--fs-md);
+	letter-spacing: 0.04em;
+	text-decoration: none;
+}
+
+.l-footer__sns {
+	margin-top: var(--sp-4);
+}
+
+.l-footer__list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--sp-2) var(--sp-5);
+}
+
+.l-footer__list a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	text-decoration: none;
+}
+
+.l-footer__disclaimer {
+	margin-top: var(--sp-7);
+	padding-top: var(--sp-4);
+	border-top: 1px solid rgba(255, 255, 255, 0.16);
+	color: #c3cfc9;
+	font-size: var(--fs-xs);
+	line-height: 1.8;
+}
+
+.l-footer__copyright {
+	margin-top: var(--sp-3);
+	color: #9fb1a9;
+	font-size: var(--fs-xs);
+}
+
+/* ==========================================================================
+   4. コンポーネント
+   ========================================================================== */
+
+.c-skip-link {
+	position: absolute;
+	left: -9999px;
+	top: 0;
+	z-index: 100;
+	padding: var(--sp-3) var(--sp-4);
+	background: var(--c-brand);
+	color: var(--c-on-dark);
+}
+
+.c-skip-link:focus {
+	left: 0;
+}
+
+.u-visually-hidden {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* --- ボタン -------------------------------------------------------------- */
+
+.c-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	min-height: 48px;
+	padding: 0.55em 1.6em;
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+	transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.c-button--primary {
+	background: var(--c-brand);
+	color: var(--c-on-dark);
+}
+
+.c-button--primary:hover {
+	background: var(--c-brand-dark);
+	color: var(--c-on-dark);
+}
+
+.c-button--ghost {
+	border-color: var(--c-border);
+	background: var(--c-bg);
+	color: var(--c-text);
+}
+
+.c-button--ghost:hover {
+	border-color: var(--c-brand);
+	color: var(--c-brand);
+}
+
+.c-button--on-photo {
+	border-color: rgba(255, 255, 255, 0.7);
+	background: transparent;
+	color: #fff;
+}
+
+.c-button--on-photo:hover {
+	background: rgba(255, 255, 255, 0.14);
+	color: #fff;
+}
+
+/* --- 見出し -------------------------------------------------------------- */
+
+.c-heading {
+	margin-bottom: var(--sp-6);
+}
+
+.c-heading__sub {
+	display: block;
+	margin-bottom: var(--sp-2);
+	color: var(--c-accent);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+}
+
+.c-heading__title {
+	font-size: var(--fs-2xl);
+	letter-spacing: 0.04em;
+}
+
+.c-heading__lead {
+	margin-top: var(--sp-4);
+	max-width: 46em;
+	color: var(--c-muted);
+}
+
+/* --- カード -------------------------------------------------------------- */
+
+.c-card {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background: var(--c-bg);
+	text-decoration: none;
+	transition: transform 0.25s ease;
+}
+
+.c-card:hover {
+	transform: translateY(-3px);
+	color: inherit;
+}
+
+.c-card__media {
+	position: relative;
+	overflow: hidden;
+	/* 画像の読み込み前後で高さが変わらないようにする（レイアウトシフト対策） */
+	aspect-ratio: 4 / 3;
+	background: var(--c-surface-2);
+}
+
+.c-card__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.5s ease;
+}
+
+.c-card:hover .c-card__media img {
+	transform: scale(1.04);
+}
+
+.c-card__body {
+	padding-top: var(--sp-4);
+}
+
+.c-card__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--sp-2);
+	margin-bottom: var(--sp-2);
+	font-size: var(--fs-xs);
+	color: var(--c-muted);
+}
+
+.c-card__cat {
+	padding: 0.2em 0.7em;
+	background: var(--c-brand-tint);
+	color: var(--c-brand);
+	font-weight: 700;
+	letter-spacing: 0.06em;
+}
+
+.c-card__title {
+	font-size: var(--fs-md);
+	font-weight: 600;
+}
+
+.c-card__excerpt {
+	margin-top: var(--sp-2);
+	color: var(--c-muted);
+	font-size: var(--fs-sm);
+}
+
+.c-thumb__empty {
+	display: block;
+	width: 100%;
+	height: 100%;
+	background: repeating-linear-gradient(
+		45deg,
+		var(--c-surface-2),
+		var(--c-surface-2) 10px,
+		var(--c-surface) 10px,
+		var(--c-surface) 20px
+	);
+}
+
+/* --- グリッド ------------------------------------------------------------ */
+
+.c-grid {
+	display: grid;
+	gap: var(--sp-6) var(--sp-5);
+	/* minmax(0, 1fr) にしないと、長い語で列が広がり横スクロールが出る */
+	grid-template-columns: minmax(0, 1fr);
+}
+
+/* --- タブ（種別絞り込み） ------------------------------------------------- */
+
+.c-tabs {
+	margin-bottom: var(--sp-6);
+}
+
+.c-tabs__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sp-2);
+}
+
+.c-tabs__item {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4em;
+	min-height: 44px;
+	padding: 0 1.1em;
+	border: 1px solid var(--c-border);
+	border-radius: 999px;
+	background: var(--c-bg);
+	font-size: var(--fs-sm);
+	letter-spacing: 0.04em;
+	text-decoration: none;
+	transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.c-tabs__item:hover {
+	border-color: var(--c-brand);
+	color: var(--c-brand);
+}
+
+.c-tabs__item.is-current {
+	background: var(--c-brand);
+	border-color: var(--c-brand);
+	color: var(--c-on-dark);
+}
+
+.c-tabs__count {
+	font-size: 0.6875rem;
+	opacity: 0.75;
+}
+
+/* --- パンくず ------------------------------------------------------------ */
+
+.c-breadcrumb {
+	padding-block: var(--sp-3);
+	border-bottom: 1px solid var(--c-border);
+	font-size: var(--fs-xs);
+	color: var(--c-muted);
+}
+
+.c-breadcrumb__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+}
+
+.c-breadcrumb__item + .c-breadcrumb__item::before {
+	content: "／";
+	margin-right: 0.5em;
+	opacity: 0.5;
+}
+
+/* --- テーブル（物件概要・会社情報・募集要項） ------------------------------ */
+
+.c-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--fs-sm);
+}
+
+.c-table th,
+.c-table td {
+	padding: var(--sp-3) var(--sp-2);
+	border-bottom: 1px solid var(--c-border);
+	text-align: left;
+	vertical-align: top;
+	line-height: 1.8;
+}
+
+.c-table th {
+	width: 34%;
+	color: var(--c-muted);
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+/* --- 沿革 ---------------------------------------------------------------- */
+
+.c-history {
+	display: grid;
+	grid-template-columns: 6.5em minmax(0, 1fr);
+	gap: var(--sp-3) var(--sp-4);
+	font-size: var(--fs-sm);
+}
+
+.c-history dt {
+	color: var(--c-brand);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+
+.c-history dd {
+	margin: 0;
+	padding-bottom: var(--sp-3);
+	border-bottom: 1px solid var(--c-border);
+}
+
+/* --- 間取り図 ------------------------------------------------------------ */
+
+.c-floor-plan {
+	margin: 0;
+	padding: var(--sp-5);
+	border: 1px solid var(--c-border);
+	background: var(--c-bg);
+	/* SVG は currentColor で描いているので、ここの color が図の色になる */
+	color: var(--c-brand);
+}
+
+.c-floor-plan__svg {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.c-floor-plan__note {
+	margin-top: var(--sp-3);
+	color: var(--c-muted);
+	font-size: var(--fs-xs);
+}
+
+/* --- サンプル表記 --------------------------------------------------------- */
+
+.c-sample-notice {
+	padding: var(--sp-3) var(--sp-4);
+	border-left: 3px solid var(--c-accent);
+	background: var(--c-surface);
+	color: var(--c-muted);
+	font-size: var(--fs-xs);
+	line-height: 1.8;
+}
+
+/* --- ページネーション ----------------------------------------------------- */
+
+.c-pagination {
+	margin-top: var(--sp-8);
+}
+
+.c-pagination .nav-links {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--sp-2);
+}
+
+.c-pagination .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	padding: 0 0.6em;
+	border: 1px solid var(--c-border);
+	font-size: var(--fs-sm);
+	text-decoration: none;
+}
+
+.c-pagination .page-numbers.current {
+	background: var(--c-brand);
+	border-color: var(--c-brand);
+	color: var(--c-on-dark);
+}
+
+/* --- 本文（投稿・固定ページ） --------------------------------------------- */
+
+.c-prose {
+	max-width: 42em;
+	line-height: 2;
+}
+
+.c-prose > * + * {
+	margin-top: 1.4em;
+}
+
+.c-prose h2 {
+	margin-top: 2em;
+	padding-bottom: 0.4em;
+	border-bottom: 1px solid var(--c-border);
+	font-size: var(--fs-lg);
+}
+
+.c-prose h3 {
+	margin-top: 1.8em;
+	font-size: var(--fs-md);
+}
+
+.c-prose ul {
+	padding-left: 1.2em;
+	list-style: disc;
+}
+
+.c-prose li + li {
+	margin-top: 0.4em;
+}
+
+.c-prose a {
+	color: var(--c-brand);
+}
+
+/* ==========================================================================
+   5. ページ固有
+   ========================================================================== */
+
+/* --- ヒーロー ------------------------------------------------------------ */
+
+.p-hero {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	min-height: min(84vh, 680px);
+	overflow: hidden;
+	background: var(--c-brand-dark);
+	color: #fff;
+}
+
+.p-hero__media {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+}
+
+.p-hero__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/*
+ * スクリム（暗幕）。
+ * 文字が乗る領域の黒の不透明度を 0.54 以上にすることで、
+ * 背景写真が純白（相対輝度 1.0）でも白文字とのコントラストが
+ * 4.5:1 を上回ることを保証する。写真を差し替えても破綻しない。
+ * 下 75% を 0.60 以上に保ち、文字はその内側にしか置かない。
+ */
+.p-hero__scrim {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.80) 0%,
+		rgba(0, 0, 0, 0.64) 45%,
+		rgba(0, 0, 0, 0.60) 75%,
+		rgba(0, 0, 0, 0.22) 100%
+	);
+}
+
+.p-hero__body {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	max-width: var(--container);
+	margin-inline: auto;
+	padding: var(--sp-8) var(--gutter) var(--sp-9);
+	/* 文字ブロックは常にヒーロー下部 75% の内側に収める */
+	max-height: 75%;
+}
+
+.p-hero__eyebrow {
+	margin-bottom: var(--sp-3);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	letter-spacing: 0.2em;
+}
+
+.p-hero__title {
+	font-size: var(--fs-3xl);
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	line-height: 1.45;
+	text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+}
+
+.p-hero__text {
+	margin-top: var(--sp-5);
+	max-width: 34em;
+	font-size: var(--fs-base);
+	line-height: 1.95;
+}
+
+.p-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sp-3);
+	margin-top: var(--sp-6);
+}
+
+/* --- 事業内容 ------------------------------------------------------------ */
+
+.p-service-card__media {
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	background: var(--c-surface-2);
+}
+
+.p-service-card__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.p-service-card__title {
+	margin-top: var(--sp-4);
+	font-size: var(--fs-lg);
+}
+
+.p-service-card__catch {
+	margin-top: var(--sp-2);
+	color: var(--c-accent);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+}
+
+.p-service-card__text {
+	margin-top: var(--sp-3);
+	color: var(--c-muted);
+	font-size: var(--fs-sm);
+}
+
+.p-service-detail {
+	display: grid;
+	gap: var(--sp-6);
+	padding-block: var(--sp-8);
+	border-bottom: 1px solid var(--c-border);
+}
+
+.p-service-detail__points {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sp-2);
+	margin-top: var(--sp-4);
+}
+
+.p-service-detail__points li {
+	padding: 0.3em 0.9em;
+	border: 1px solid var(--c-border);
+	border-radius: 999px;
+	font-size: var(--fs-xs);
+	color: var(--c-muted);
+}
+
+/* --- 施工実績 詳細 -------------------------------------------------------- */
+
+.p-work__hero {
+	aspect-ratio: 3 / 2;
+	overflow: hidden;
+	background: var(--c-surface-2);
+}
+
+.p-work__hero img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.p-work__layout {
+	display: grid;
+	gap: var(--sp-7);
+	margin-top: var(--sp-7);
+}
+
+.p-work__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sp-2);
+	margin-bottom: var(--sp-3);
+	font-size: var(--fs-xs);
+	color: var(--c-muted);
+}
+
+.p-work__title {
+	font-size: var(--fs-2xl);
+}
+
+.p-work__spec-title,
+.p-work__plan-title {
+	margin-bottom: var(--sp-3);
+	font-size: var(--fs-sm);
+	letter-spacing: 0.16em;
+	color: var(--c-accent);
+}
+
+.p-work__aside {
+	display: grid;
+	gap: var(--sp-6);
+	align-content: start;
+}
+
+.p-work__nav {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sp-4);
+	margin-top: var(--sp-8);
+	padding-top: var(--sp-5);
+	border-top: 1px solid var(--c-border);
+	font-size: var(--fs-sm);
+}
+
+/* --- お知らせ ------------------------------------------------------------ */
+
+.p-news-list {
+	border-top: 1px solid var(--c-border);
+}
+
+.p-news-item {
+	border-bottom: 1px solid var(--c-border);
+}
+
+.p-news-item__link {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--sp-1) var(--sp-4);
+	padding-block: var(--sp-4);
+	text-decoration: none;
+}
+
+.p-news-item__date {
+	color: var(--c-muted);
+	font-size: var(--fs-xs);
+	letter-spacing: 0.06em;
+}
+
+.p-news-item__cat {
+	display: inline-block;
+	padding: 0.15em 0.7em;
+	background: var(--c-brand-tint);
+	color: var(--c-brand);
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.p-news-item__title {
+	font-size: var(--fs-base);
+	font-weight: 600;
+}
+
+/* --- Instagram ----------------------------------------------------------- */
+
+.p-instagram__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--sp-2);
+}
+
+.p-instagram__item {
+	aspect-ratio: 1 / 1;
+	overflow: hidden;
+	background: var(--c-surface-2);
+}
+
+.p-instagram__item img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.4s ease;
+}
+
+.p-instagram__item:hover img {
+	transform: scale(1.05);
+}
+
+.p-instagram__link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	margin-top: var(--sp-5);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	color: var(--c-brand);
+}
+
+/* --- 採用バナー ---------------------------------------------------------- */
+
+.p-recruit-banner {
+	position: relative;
+	overflow: hidden;
+	color: #fff;
+	background: var(--c-brand-dark);
+}
+
+.p-recruit-banner__media {
+	position: absolute;
+	inset: 0;
+}
+
+.p-recruit-banner__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* 採用バナーも文字が写真に乗るため、同じ基準（0.54 以上）で暗幕を掛ける */
+.p-recruit-banner__scrim {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.62);
+}
+
+.p-recruit-banner__body {
+	position: relative;
+	z-index: 1;
+	padding-block: var(--sp-9);
+	text-align: center;
+}
+
+.p-recruit-banner__title {
+	font-size: var(--fs-xl);
+}
+
+.p-recruit-banner__text {
+	margin-top: var(--sp-3);
+	color: #e6ece9;
+	font-size: var(--fs-sm);
+}
+
+.p-recruit-banner__actions {
+	margin-top: var(--sp-5);
+}
+
+/* --- CTA 帯 -------------------------------------------------------------- */
+
+.p-cta {
+	background: var(--c-brand);
+	color: #fff;
+}
+
+.p-cta__inner {
+	display: grid;
+	gap: var(--sp-6);
+	padding-block: var(--sp-8);
+	align-items: center;
+}
+
+.p-cta__title {
+	font-size: var(--fs-xl);
+}
+
+.p-cta__text {
+	margin-top: var(--sp-3);
+	color: #d9e5e0;
+	font-size: var(--fs-sm);
+}
+
+.p-cta__contact {
+	display: grid;
+	gap: var(--sp-3);
+	justify-items: start;
+}
+
+.p-cta__tel-label {
+	font-size: var(--fs-xs);
+	letter-spacing: 0.16em;
+	color: #cfe0d8;
+}
+
+.p-cta__tel {
+	font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.25rem);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-decoration: none;
+	line-height: 1.2;
+}
+
+.p-cta__hours {
+	font-size: var(--fs-xs);
+	color: #cfe0d8;
+}
+
+.p-cta__button {
+	background: #fff;
+	color: var(--c-brand);
+	border-color: #fff;
+}
+
+.p-cta__button:hover {
+	background: #eef2f0;
+	color: var(--c-brand);
+}
+
+/* --- アクセス ------------------------------------------------------------ */
+
+.p-access__map {
+	aspect-ratio: 16 / 9;
+	background: var(--c-surface-2);
+}
+
+.p-access__map iframe {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.p-access__info {
+	margin-top: var(--sp-5);
+	font-size: var(--fs-sm);
+	color: var(--c-muted);
+}
+
+/* --- 下層ページ見出し ----------------------------------------------------- */
+
+.p-page-header {
+	padding-block: var(--sp-8) var(--sp-7);
+	background: var(--c-surface);
+	border-bottom: 1px solid var(--c-border);
+}
+
+.p-page-header__sub {
+	color: var(--c-accent);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+}
+
+.p-page-header__title {
+	margin-top: var(--sp-2);
+	font-size: var(--fs-2xl);
+}
+
+/* --- フォーム（Contact Form 7） ------------------------------------------- */
+
+.p-form {
+	max-width: 46em;
+}
+
+.p-form label {
+	display: block;
+	margin-bottom: var(--sp-4);
+	font-size: var(--fs-sm);
+	font-weight: 600;
+}
+
+.p-form .wpcf7-form-control:not(.wpcf7-submit):not([type="checkbox"]):not([type="radio"]) {
+	display: block;
+	width: 100%;
+	min-height: 48px;
+	margin-top: var(--sp-2);
+	padding: 0.6em 0.9em;
+	border: 1px solid var(--c-border);
+	border-radius: var(--radius);
+	background: var(--c-bg);
+	font: inherit;
+	font-size: var(--fs-base);
+	color: var(--c-text);
+}
+
+.p-form textarea.wpcf7-form-control {
+	min-height: 12em;
+	line-height: 1.8;
+	resize: vertical;
+}
+
+.p-form .wpcf7-form-control:focus {
+	border-color: var(--c-brand);
+	outline: 3px solid rgba(31, 76, 63, 0.18);
+	outline-offset: 1px;
+}
+
+.p-form .wpcf7-submit {
+	min-height: 52px;
+	padding: 0.6em 2.4em;
+	border: 0;
+	border-radius: var(--radius);
+	background: var(--c-brand);
+	color: #fff;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	letter-spacing: 0.08em;
+}
+
+.p-form .wpcf7-submit:hover {
+	background: var(--c-brand-dark);
+}
+
+.p-form .wpcf7-not-valid-tip {
+	display: block;
+	margin-top: var(--sp-1);
+	color: #a32b1e;
+	font-size: var(--fs-xs);
+	font-weight: 400;
+}
+
+.p-form .wpcf7-response-output {
+	margin: var(--sp-5) 0 0;
+	padding: var(--sp-4);
+	border: 1px solid var(--c-border);
+	font-size: var(--fs-sm);
+}
+
+.p-form__required {
+	margin-left: 0.5em;
+	padding: 0.1em 0.5em;
+	background: var(--c-accent);
+	color: #fff;
+	font-size: 0.6875rem;
+	font-weight: 700;
+	vertical-align: 2px;
+}
+
+.p-form__note {
+	margin-bottom: var(--sp-6);
+	color: var(--c-muted);
+	font-size: var(--fs-sm);
+}
+
+/* --- 404 ----------------------------------------------------------------- */
+
+.p-404 {
+	padding-block: var(--sp-10);
+	text-align: center;
+}
+
+.p-404__code {
+	color: var(--c-accent);
+	font-size: var(--fs-3xl);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+}
+
+.p-404__title {
+	margin-top: var(--sp-3);
+	font-size: var(--fs-xl);
+}
+
+.p-404__text {
+	margin-top: var(--sp-4);
+	color: var(--c-muted);
+}
+
+.p-404__actions {
+	margin-top: var(--sp-6);
+}
+
+/* ==========================================================================
+   6. レスポンシブ
+   モバイルファーストで書き、幅が広がったところで列を増やす。
+   ========================================================================== */
+
+/* --- 768px 未満: ナビをドロワーにする ------------------------------------- */
+
+@media (max-width: 899px) {
+
+	.l-header__toggle {
+		display: block;
+	}
+
+	.l-nav {
+		position: fixed;
+		inset: var(--header-h) 0 auto 0;
+		z-index: 40;
+		display: block;
+		max-height: calc(100dvh - var(--header-h));
+		padding: var(--sp-5) var(--gutter) var(--sp-8);
+		background: var(--c-bg);
+		border-bottom: 1px solid var(--c-border);
+		overflow-y: auto;
+		/* 閉じている間はレイアウトから外す。visibility を切らないと
+		   画面外の項目にタブで入れてしまう。 */
+		visibility: hidden;
+		opacity: 0;
+		transform: translateY(-8px);
+		transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+	}
+
+	.l-nav.is-open {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.l-nav__list {
+		display: block;
+	}
+
+	.l-nav__list li + li {
+		border-top: 1px solid var(--c-border);
+	}
+
+	.l-nav__list a {
+		min-height: 52px;
+		font-size: var(--fs-base);
+	}
+
+	.l-nav__cta {
+		margin-top: var(--sp-5);
+	}
+
+	.l-nav__cta .c-button {
+		width: 100%;
+	}
+}
+
+/* --- 600px 以上 ---------------------------------------------------------- */
+
+@media (min-width: 600px) {
+
+	.c-grid--2,
+	.c-grid--3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.p-news-item__link {
+		grid-template-columns: 7em 7em minmax(0, 1fr);
+		align-items: baseline;
+	}
+
+	.l-footer__list {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* --- 900px 以上 ---------------------------------------------------------- */
+
+@media (min-width: 900px) {
+
+	:root {
+		--gutter: 2rem;
+		--header-h: 78px;
+	}
+
+	.c-grid--3 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.l-section {
+		padding-block: var(--sp-10);
+	}
+
+	.l-footer__grid {
+		grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+		gap: var(--sp-9);
+	}
+
+	.p-cta__inner {
+		grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+	}
+
+	.p-cta__contact {
+		justify-items: end;
+		text-align: right;
+	}
+
+	.p-service-detail {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: var(--sp-8);
+		align-items: center;
+	}
+
+	.p-service-detail:nth-child(even) .p-service-detail__media {
+		order: 2;
+	}
+
+	.p-work__layout {
+		grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+	}
+
+	.p-instagram__grid {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+	}
+
+	.c-heading--split {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+		gap: var(--sp-6);
+		align-items: end;
+	}
+
+	.c-heading--split .c-heading__lead {
+		margin-top: 0;
+	}
+}
+
+/* --- 1100px 以上 --------------------------------------------------------- */
+
+@media (min-width: 1100px) {
+
+	.c-grid--3 {
+		gap: var(--sp-7) var(--sp-6);
+	}
+}
+
+/* セクション末尾の「もっと見る」導線 */
+.c-more {
+	margin-top: var(--sp-8);
+	text-align: center;
+}
+
+/* 施工実績 詳細の本文 */
+.p-work__body {
+	margin-top: var(--sp-6);
+}
+
+/* 施工実績一覧のタブ位置 */
+.l-works-tabs {
+	margin-top: var(--sp-6);
+}
+
+/* お問い合わせページの電話番号 */
+.p-contact__tel {
+	font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.25rem);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--c-brand);
+	text-decoration: none;
+}
+
+/* 404 のボタン並び */
+.p-404__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--sp-3);
+}
+
+/* カードの竣工年月 */
+.c-card__date {
+	letter-spacing: 0.02em;
+}
