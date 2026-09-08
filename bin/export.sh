@@ -131,17 +131,60 @@ echo "==> wp-content を収集します"
 cp -R themes/soranowa-koumuten "${DIST}/wp-content/themes/"
 cp -R plugins/koumuten-core "${DIST}/wp-content/plugins/"
 
+# 日本語の言語ファイル。
+# サブディレクトリの WordPress は独立したインストールで、
+# ルート側の wp-content/languages を共有しない。
+# 同梱しないと管理画面が英語で立ち上がる
+# （WordPress の自動取得に任せる手もあるが、確実性を優先する）。
+if docker exec "${CLI_CONTAINER}" test -d /var/www/html/wp-content/languages; then
+  docker cp "${CLI_CONTAINER}:/var/www/html/wp-content/languages" \
+    "${DIST}/wp-content/" >/dev/null
+  echo "    日本語の言語ファイルを同梱（$(du -sh "${DIST}/wp-content/languages" | cut -f1)）"
+fi
+
 if [ -d uploads ] && [ -n "$(ls -A uploads 2>/dev/null)" ]; then
   cp -R uploads/. "${DIST}/wp-content/uploads/"
 fi
 
 echo "    mu-plugins は移設対象外（ローカル専用のため）"
-echo "    ACF / Contact Form 7 は移設先で管理画面からインストールする"
+
+# ACF と Contact Form 7 も同梱する。
+#
+# リポジトリには含めない（bin/dist は .gitignore 済み）が、
+# 配布物には入れる。理由は次の 2 点。
+#   1. DB ダンプは「これらが有効」の状態で保存されている。
+#      ファイルが無いまま流し込むと管理画面がエラーになるため、
+#      移設先で先にインストールする手順が必須になり、順番の事故が起きやすい。
+#   2. 手動インストールでは版が変わりうる。ローカルと同一の版を
+#      そのまま持ち込めば、移設先で挙動が変わらない。
+# どちらも GPL で、wordpress.org のスラッグも一致するため
+# 移設先での自動更新は従来どおり機能する。
+for pc_plugin in advanced-custom-fields contact-form-7; do
+  if docker exec "${CLI_CONTAINER}" test -d "/var/www/html/wp-content/plugins/${pc_plugin}"; then
+    docker cp "${CLI_CONTAINER}:/var/www/html/wp-content/plugins/${pc_plugin}" \
+      "${DIST}/wp-content/plugins/" >/dev/null
+    # 翻訳ファイルは 50 言語以上が同梱されており、ACF だけで 21MB になる。
+    # 日本語と、フォールバック用の .pot だけ残す。
+    # 共用サーバーはアップロード容量に制限があることが多く、
+    # 差の 20MB は転送の成否を分ける。
+    pc_lang="${DIST}/wp-content/plugins/${pc_plugin}/lang"
+    if [ -d "${pc_lang}" ]; then
+      find "${pc_lang}" -type f \( -name '*.mo' -o -name '*.po' -o -name '*.l10n.php' \) \
+        ! -name '*-ja.*' ! -name '*ja_JP*' -delete 2>/dev/null || true
+    fi
+    pc_ver=$(wp plugin get "${pc_plugin}" --field=version 2>/dev/null || echo '?')
+    pc_size=$(du -sh "${DIST}/wp-content/plugins/${pc_plugin}" | cut -f1)
+    echo "    ${pc_plugin} ${pc_ver} を同梱（${pc_size}）"
+  else
+    echo "    警告: ${pc_plugin} が見つかりません" >&2
+  fi
+done
 
 # ---------------------------------------------------------------------------
 # 4. 手順書
 # ---------------------------------------------------------------------------
 PREFIX_NOTE=""
+PREFIX_NOTE_SHORT="wp-config.php の \$table_prefix は '${NEW_PREFIX}' にすること。"
 if [ "${NEW_PREFIX}" != "${OLD_PREFIX}" ]; then
   PREFIX_NOTE="
 【重要】このダンプはテーブル接頭辞を ${NEW_PREFIX} に変更してあります。
@@ -157,19 +200,23 @@ fi
 cat > "${DIST}/README.txt" <<EOS
 移設手順（${TARGET_URL}）
 ${PREFIX_NOTE}
-前提: 設置先に WordPress がインストール済みであること。
+前提: 設置先に WordPress 本体のファイルが置かれていること。
 
-1. プラグイン Advanced Custom Fields と Contact Form 7 を
-   インストールして有効化する。
-   DB ダンプ側で有効化済みの状態になっているため、
-   ファイルが無いと管理画面でエラーになる。先に入れておく。
+1. WordPress 本体を設置し、wp-config.php を用意する。
+   ${PREFIX_NOTE_SHORT}
 
-2. FTP で wp-content/ の中身をアップロードする。
+2. wp-content/ の中身をアップロードする。
+   ACF と Contact Form 7 も同梱済みのため、
+   管理画面からのインストールは不要。
      wp-content/themes/soranowa-koumuten/
      wp-content/plugins/koumuten-core/
+     wp-content/plugins/advanced-custom-fields/
+     wp-content/plugins/contact-form-7/
      wp-content/uploads/
 
 3. phpMyAdmin で database.sql をインポートする。
+   インストールウィザードを実行する必要はない。
+   ダンプに管理者アカウントもコンテンツも入っている。
 
 4. 管理画面にログインし、「設定 > パーマリンク」を開いて保存する。
    カスタム投稿タイプ /works/ のリライトルールを再生成するために必要。
