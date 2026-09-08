@@ -1,10 +1,11 @@
 <?php
 /**
  * Plugin Name: Koumuten Core
- * Plugin URI:  https://example.test/
+ * Plugin URI:  https://github.com/pacchi-dev/koumuten-wp
  * Description: 施工実績（カスタム投稿タイプ）・タクソノミー・ACF フィールド定義・会社情報設定を提供する。表示はテーマ側の責務。
  * Version:     1.0.0
  * Author:      pacchi
+ * Author URI:  https://github.com/pacchi-dev
  * Requires PHP: 8.1
  * Text Domain: koumuten-core
  *
