@@ -10,6 +10,10 @@ uploads/*
 bin/seed/images/*
 !bin/seed/images/.gitkeep
 
+# 移設用の書き出し結果。ビルド成果物であり、
+# DB ダンプ（パスワードハッシュを含む）や素材の実体が入るため管理しない。
+bin/dist/
+
 .DS_Store
 node_modules/
 *.log
