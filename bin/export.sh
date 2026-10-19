@@ -235,6 +235,39 @@ ${PREFIX_NOTE}
 - mu-plugins（ローカル SMTP）は含めていない。
 EOS
 
+# ---------------------------------------------------------------------------
+# 5. wp-content を zip にまとめる
+#
+#   bin/deploy.sh は bin/dist/*.zip を探して転送する。
+#   ここで作らないと「先に ./bin/export.sh を実行してください」と
+#   案内されたとおりに実行しても deploy.sh が必ず失敗する。
+#
+#   zip は wp-content/ を含む形にする。deploy-unpack.php が
+#   Web ルート直下へ展開するため、階層を保つ必要がある。
+# ---------------------------------------------------------------------------
+echo ""
+echo "==> wp-content を zip にまとめます"
+
+if ! command -v zip >/dev/null 2>&1; then
+  echo "    エラー: zip コマンドが見つかりません" >&2
+  exit 1
+fi
+
+ARCHIVE_PATH="${DIST}/wp-content.zip"
+rm -f "${ARCHIVE_PATH}"
+
+# -r 再帰 / -q 進捗を出さない / -X 余計なメタデータを含めない
+# macOS の .DS_Store と __MACOSX は除外する。
+( cd "${DIST}" && zip -qrX "wp-content.zip" "wp-content" \
+    -x '*.DS_Store' -x '__MACOSX/*' )
+
+if [ ! -f "${ARCHIVE_PATH}" ]; then
+  echo "    エラー: ${ARCHIVE_PATH} を作成できませんでした" >&2
+  exit 1
+fi
+
+echo "    ${ARCHIVE_PATH}（$(du -h "${ARCHIVE_PATH}" | cut -f1) / $(unzip -l "${ARCHIVE_PATH}" | tail -1 | awk '{print $2}') ファイル）"
+
 echo ""
 echo "==> 完了"
 du -sh "${DIST}" | sed 's/^/    /'
