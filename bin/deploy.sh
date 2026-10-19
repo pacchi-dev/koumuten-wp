@@ -112,9 +112,14 @@ ftp_size() {
 #   ・wp-config.php のような «秘密を含むもの» は暗号化必須。
 #     通らなければ失敗させる。平文には «絶対に» 落とさない。
 #   ・テーマや画像のような «公開されるもの» は、暗号化で失敗したら
-#     平文データチャネルへ切り替える。内容は HTTPS で誰でも取得でき、
-#     GitHub でも公開しているため、秘匿する意味がない。
+#     平文データチャネルへ切り替える。
 # パスワードはどちらの経路でも平文にならない。
+#
+# ただし平文データチャネルで失われるのは «機密性» だけではない。
+# 書庫は Web ルートへ展開されるため、経路上で差し替えられれば
+# 任意コード実行になる。«完全性» はバイト数一致では担保できないので、
+# 書庫の sha256 を展開スクリプトへ埋め込み、サーバー側の展開直前に
+# hash_equals() で照合する（bin/deploy-unpack.php）。
 FTP_RETRIES=3
 
 ftp_put() {
@@ -168,7 +173,16 @@ for ARCHIVE in "${ARCHIVES[@]}"; do
   TOKEN=$(openssl rand -hex 16)
   UNPACK_NAME="deploy-$(openssl rand -hex 6).php"
   TMP_UNPACK="$(mktemp -t deploy-unpack).php"
+  # 書庫の sha256 を展開スクリプトへ埋め込む。
+  # サーバー側はこれと実ファイルを突き合わせてから展開する。
+  if command -v sha256sum >/dev/null 2>&1; then
+    ARCHIVE_SHA256=$(sha256sum "${DIST}/${ARCHIVE}" | awk '{print $1}')
+  else
+    ARCHIVE_SHA256=$(shasum -a 256 "${DIST}/${ARCHIVE}" | awk '{print $1}')
+  fi
+
   sed -e "s/__TOKEN__/${TOKEN}/" -e "s/__ARCHIVE__/${ARCHIVE}/" \
+    -e "s/__SHA256__/${ARCHIVE_SHA256}/" \
     bin/deploy-unpack.php > "${TMP_UNPACK}"
 
   echo "==> ${ARCHIVE} を転送します"
